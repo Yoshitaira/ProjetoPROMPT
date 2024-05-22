@@ -1,0 +1,27 @@
+CADASTRAR UM USUÁRIO:
+    -cpf, um cpf válido de 11 digitos
+    -Email, um email válido exemplo@email.com
+    -Nome, nome válido com apenas letras
+    -Senha, ela fica criptografada no banco de dados, não se preocupe
+    -Autenticação, é atribuido automaticamente pelo sistema
+
+FAZER LOGIN:
+    -O login é único para todos os usuários, tanto o comum, quanto ADMINISTRADOR
+    -para solucionarmos quem deve ter acesso a certas funções, definimos uma autenticação além da senha
+    baseada em níveis, sendo eles 1 para e 2.
+    -dependo do seu tipo de usuário será destinado a um menu especifico
+
+MENU DE USUÁRIO:
+    -Contém um mercado para fazer compras
+    -Alterar informações do seu perfil e somente do próprio perfil
+    -Excluir perfil, e somente o próprio perfil
+    (um usuário não tem acesso a informação de outros usuários)
+
+MENU ADMINISTRADOR:
+    -acesso para cadastrar novos produtos
+    -Alterar informações de qualquer usuário ou produto da plataforma
+    -Excluir qualquer usuário ou produto da plataforma
+
+Para utilizar funções EXCLUSIVAS de um ADMINISTRADOR:
+    cpf: 46921022846
+    senha: 123a@
