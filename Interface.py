@@ -8,6 +8,7 @@ import databaset
 import hashlib
 import binascii
 from email_validator import validate_email, EmailNotValidError
+from PIL import Image, ImageTk
 
 home = CTk()
 
@@ -230,7 +231,7 @@ class Sistema():
                         print(f"Adicionado {quantity} {product[1]} no carrinho.")
                         new_quantity = product[4] - quantity
                         databaset.cursor.execute("UPDATE products SET QUANTIDADE=? WHERE ID=?", (new_quantity, id_prod))
-                        databaset.conn.commit()
+                        
 
                     else:
                         span = messagebox.showerror(title="Error!", message="Produto não encontrado ou quantidade insuficiente.")
@@ -260,7 +261,6 @@ class Sistema():
                                     print(f"Removido {quantity} {product[1]} de {product[2]} do carrinho.")
                                     new_quantity = product[4] + quantity
                                     databaset.cursor.execute("UPDATE products SET QUANTIDADE=? WHERE ID=?", (new_quantity, id_prod))
-                                    databaset.conn.commit()
                                     break
 
                 #   remover produtos do carrinho
@@ -280,6 +280,8 @@ class Sistema():
 
                     span = messagebox.showinfo(title="Compra finalizada!", message=f"Custo da compra: R${total_cost} ")
                     print(f"Custo da compra: R${total_cost}")
+
+                    databaset.conn.commit()
                     carrinho.clear()
 
                 # Finalizar compras
@@ -530,8 +532,8 @@ class Sistema():
             frame_menu_adm = CTkFrame(master = home, width = 650, height = 370)
             frame_menu_adm.pack(pady= 20, padx = 20)
 
-            area_administrador = CTkLabel(master = frame_menu_adm, text ="Olá, administrador.", font= ("Roboto", 20)).place(x= 250, y=20)
-            dados_entry = CTkLabel(master = frame_menu_adm, text= "Digite o que gostaria de consultar que gostaria de pesquisar!", font= ("Roboto", 14)).place(x= 250, y=50)
+            area_administrador = CTkLabel(master = frame_menu_adm, text ="Olá, administrador.", font= ("Roboto", 20)).place(x= 450, y=20)
+            dados_entry = CTkLabel(master = frame_menu_adm,text= "Digite o que gostaria de pesquisar!", font= ("Roboto", 14)).place(x= 410, y=50)
 
             def id_cpf_save():
                 id_cpf = id_cpf_save
@@ -628,36 +630,36 @@ class Sistema():
 
             procurar_button = CTkButton(master = frame_menu_adm, text="Procurar", font=("Roboto", 15, "bold"), width = 75, command = Select)
             procurar_button.pack(padx=20, pady=20)
-            procurar_button.place(x= 395, y= 115)
+            procurar_button.place(x= 490, y= 115)
             
             # tabelas = ["Produtos", "Usuários"]
             # procurar = CTkComboBox(master = frame_menu_adm, values=tabelas, command=Select).place(x= 250, y= 125)
-            procurar_label = CTkLabel(master = frame_menu_adm, text= "Produtos ou usuários? ", font=("Roboto", 12)).place(x=255, y= 90)
+            procurar_label = CTkLabel(master = frame_menu_adm, text= "Produtos ou usuários? ", font=("Roboto", 12)).place(x=345, y= 90)
             procurar_entry_str = ctk.StringVar()
-            procurar_entry = CTkEntry(master= frame_menu_adm, placeholder_text="Escolha uma tabela.", textvariable= procurar_entry_str).place(x=250, y = 115)
+            procurar_entry = CTkEntry(master= frame_menu_adm, placeholder_text="Escolha uma tabela.", textvariable= procurar_entry_str).place(x=340, y = 115)
             #   dados de entrada para pesquisar usuários ou CPF
-            id_cpf_label= CTkLabel(master = frame_menu_adm, text= "CPF ou ID: ", font=("Roboto", 12)).place(x=255 ,y= 145)
+            id_cpf_label= CTkLabel(master = frame_menu_adm, text= "CPF ou ID: ", font=("Roboto", 12)).place(x=345 ,y= 145)
             id_cpf_procurar_str = ctk.StringVar()
-            id_cpf_procurar = CTkEntry(master = frame_menu_adm, placeholder_text="Procure pra mim: ", textvariable=id_cpf_procurar_str).place(x=250, y=170)
+            id_cpf_procurar = CTkEntry(master = frame_menu_adm, placeholder_text="Procure pra mim: ", textvariable=id_cpf_procurar_str).place(x=340, y=170)
             
-            dado1_label = CTkLabel(master = frame_menu_adm, text= "Email ou Categoria: ", font=("Roboto", 12)).place(x=405 ,y= 145)
+            dado1_label = CTkLabel(master = frame_menu_adm, text= "Email ou Categoria: ", font=("Roboto", 12)).place(x=495 ,y= 145)
             dado1_entry_str = ctk.StringVar()
-            dado1_entry = CTkEntry(master = frame_menu_adm, textvariable=dado1_entry_str).place(x =400, y= 170)
+            dado1_entry = CTkEntry(master = frame_menu_adm, textvariable=dado1_entry_str).place(x =490, y= 170)
             
-            dado2_label = CTkLabel(master = frame_menu_adm, text= "Nome ou Sabor: ", font=("Roboto", 12)).place(x=255 ,y= 200)
+            dado2_label = CTkLabel(master = frame_menu_adm, text= "Nome ou Sabor: ", font=("Roboto", 12)).place(x=345 ,y= 200)
             dado2_entry_str = ctk.StringVar()
-            dado2_entry = CTkEntry(master = frame_menu_adm, textvariable=dado2_entry_str).place(x =250, y= 225)
+            dado2_entry = CTkEntry(master = frame_menu_adm, textvariable=dado2_entry_str).place(x =340, y= 225)
             
-            dado3_label = CTkLabel(master = frame_menu_adm, text= "Senha ou Preço: ", font=("Roboto", 12)).place(x=405 ,y= 200)
+            dado3_label = CTkLabel(master = frame_menu_adm, text= "Senha ou Preço: ", font=("Roboto", 12)).place(x=495 ,y= 200)
             dado3_entry_str = ctk.StringVar()
-            dado3_entry = CTkEntry(master = frame_menu_adm, textvariable=dado3_entry_str).place(x =400, y= 225)
+            dado3_entry = CTkEntry(master = frame_menu_adm, textvariable=dado3_entry_str).place(x =490, y= 225)
            
-            dado4_label =CTkLabel(master = frame_menu_adm, text= "Auth ou Quantidade: ", font=("Roboto", 12)).place(x=255 ,y= 255)           
+            dado4_label =CTkLabel(master = frame_menu_adm, text= "Auth ou Quantidade: ", font=("Roboto", 12)).place(x=345 ,y= 255)           
             dado4_entry_str = ctk.StringVar()
-            dado4_entry = CTkEntry(master = frame_menu_adm, textvariable=dado4_entry_str).place(x =250, y= 280)
+            dado4_entry = CTkEntry(master = frame_menu_adm, textvariable=dado4_entry_str).place(x =340, y= 280)
             
             check_var = ctk.StringVar(value="off")
-            check_confirmation = CTkCheckBox(master = frame_menu_adm, text= "Concordo.", variable=check_var, onvalue="on", offvalue="off").place(x=400, y = 280)
+            check_confirmation = CTkCheckBox(master = frame_menu_adm, text= "Concordo.", variable=check_var, onvalue="on", offvalue="off").place(x=490, y = 280)
 
             def alterar_dados():
                 
@@ -791,9 +793,9 @@ class Sistema():
                 else:
                     span = messagebox.showinfo(title="Erro!", message="Verifique se as informações estão preenchidas de acordo com os padrões estabelecidos!")
         
-            alter_button = CTkButton(master = frame_menu_adm, text="Alterar",text_color="white", font=("Roboto", 12,"bold"), width= 100, command = alterar_dados)
+            alter_button = CTkButton(master = frame_menu_adm, text="Alterar",text_color="white", font=("Roboto", 12,"bold"), width= 85, command = alterar_dados)
             alter_button.pack(padx = 20, pady = 20)
-            alter_button.place(x= 250, y= 325)
+            alter_button.place(x= 340, y= 325)
             
             def excluir_dados():
                 id_cpf = id_cpf_procurar_str.get()
@@ -823,9 +825,9 @@ class Sistema():
                 else:
                     span = messagebox.showinfo(title="CANCELANDO OPERAÇÃO!", message="OPERAÇÃO FOI CANCELADA !")
             
-            remove_button = CTkButton(master = frame_menu_adm, text="Excluir",text_color="white", font=("Roboto", 12, "bold"), width= 100, fg_color="red", command=excluir_dados)
+            remove_button = CTkButton(master = frame_menu_adm, text="Excluir",text_color="white", font=("Roboto", 12, "bold"), width= 85, fg_color="red", command=excluir_dados)
             remove_button.pack(padx = 20, pady = 20)
-            remove_button.place(x= 355, y= 325)
+            remove_button.place(x= 430, y= 325)
 
             def cadastrar_dados():
 
@@ -941,9 +943,19 @@ class Sistema():
                 elif check_in == "off":
                     span = messagebox.showerror(title="ERRO!", message="Preencha o checkbox !")
 
-            cadastre_button = CTkButton(master = frame_menu_adm, text="Cadastrar",text_color="white", font=("Roboto", 12,"bold"), width= 100, fg_color="green", command= cadastrar_dados)
+            cadastre_button = CTkButton(master = frame_menu_adm, text="Cadastrar",text_color="white", font=("Roboto", 12,"bold"), width= 85, fg_color="green", command= cadastrar_dados)
             cadastre_button.pack(padx = 20, pady = 20)
-            cadastre_button.place(x= 460, y= 325)
+            cadastre_button.place(x= 520, y= 325)
+
+            def sair():
+                home.destroy()
+            
+            # icone = image.open(/projetoprompt/voltar.png)
+            # icone = ImageTk.PhotoImage(icone)
+            sair_button = CTkButton(master = frame_menu_adm, text="S\na\ni\nr", text_color="white", font=("Roboto", 12,"bold"), width=20, height= 50, command = sair)
+            sair_button.pack(padx = 20, pady = 20)
+            sair_button.place(x= 610, y= 290)
+
 
         # login realizado
         login_button = CTkButton(master = frame_home, text= "Entrar", width=300, command = user_log, font = ("Roboto", 12, "bold"), text_color= "white")

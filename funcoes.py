@@ -1,63 +1,20 @@
-import sqlite3
 from tabulate import tabulate
 import hashlib
 import getpass
 from email_validator import validate_email, EmailNotValidError
 import binascii
-from LOBBY import menu_user, menu_admin
+from databaset import * 
+# from menus import menu, menu_admin, menu_usuário
 #-----------------------------LOGIN DE USUÁRIO E VERIFICAÇÃO DE NÍVEL-----------------------------#
 # Salva o CPF do Usuário para ser utilizado posteriormente
 def cpf_save():
-     cpf_salvo = vcpf
-     return cpf_salvo
-# def auth_save():
-#     auth_salvo = auth
-#     return auth_salvo
-
+    cpf_salvo = vcpf
+    return cpf_salvo
 # Login de usuário
 def Login():# função principal
     global vcpf
-
-    def user_login(vcpf, vsenha):
-        conn = sqlite3.connect("projectdbt.db")
-        cursor = conn.cursor()
-            
-        cursor.execute("SELECT SENHA, AUTORIZAÇÃO FROM user WHERE CPF = ?", (vcpf,))
-        rs = cursor.fetchone()
-        
-        if rs is None:
-            return False
-    #criptografia armazenada no cadastro     
-        vs_crip_arm = rs[0]
-        auth = rs[1]
-
-    #criptografia atual
-        hasher = hashlib.sha256()
-        hasher.update(vsenha.encode('utf-8'))
-        vs_crip_forn = hasher.hexdigest()
-
-        return str(vs_crip_arm.decode('utf-8')) == vs_crip_forn and auth ==2
-    
-    def adm_login(vcpf, vsenha):
-        conn = sqlite3.connect("projectdbt.db")
-        cursor = conn.cursor()
-            
-        cursor.execute("SELECT SENHA, AUTORIZAÇÃO FROM user WHERE CPF = ?", (vcpf,))
-        rs = cursor.fetchone()
-        
-        if rs is None:
-            return False
-    #criptografia armazenada no cadastro     
-        vs_crip_arm = rs[0]
-        auth = rs[1]
-
-    #criptografia atual
-        hasher = hashlib.sha256()
-        hasher.update(vsenha.encode('utf-8'))
-        vs_crip_forn = hasher.hexdigest()
-
-        return str(vs_crip_arm.decode('utf-8')) == vs_crip_forn and auth ==1
-
+    conn = sqlite3.connect("projectdbt.db")
+    cursor = conn.cursor()
     t = 3 # number of tries to login 
     while t > 0: 
         vcpf = input("CPF: ")
@@ -65,11 +22,9 @@ def Login():# função principal
         
         if user_login(vcpf, vsenha):
             print(f"Login bem-sucedido!")
-            menu_user()
-          
+    
         elif adm_login(vcpf, vsenha):
             print("Login bem-sucedido!")
-            menu_admin()
         
         else:
             t -= 1 
@@ -77,58 +32,51 @@ def Login():# função principal
         
         if t == 0:
             print("Você excedeu o número de tentativas permitidas. Tente novamente mais tarde.")
-            quit()
+    quit()
 
-#---------------------------------------CADASTRO DE USUÁRIO---------------------------------------#
+def user_login(vcpf, vsenha):
+
+        
+    cursor.execute("SELECT SENHA, AUTORIZAÇÃO FROM user WHERE CPF = ?", (vcpf,))
+    rs = cursor.fetchone()
+    
+    if rs is None:
+        return False
+#criptografia armazenada no cadastro     
+    vs_crip_arm = rs[0]
+    auth = rs[1]
+
+#criptografia atual
+    hasher = hashlib.sha256()
+    hasher.update(vsenha.encode('utf-8'))
+    vs_crip_forn = hasher.hexdigest()
+
+    return str(vs_crip_arm.decode('utf-8')) == vs_crip_forn and auth ==2
+
+def adm_login(vcpf, vsenha):
+
+    cursor.execute("SELECT SENHA, AUTORIZAÇÃO FROM user WHERE CPF = ?", (vcpf,))
+    rs = cursor.fetchone()
+    
+    if rs is None:
+        return False
+#criptografia armazenada no cadastro     
+    vs_crip_arm = rs[0]
+    auth = rs[1]
+
+#criptografia atual
+    hasher = hashlib.sha256()
+    hasher.update(vsenha.encode('utf-8'))
+    vs_crip_forn = hasher.hexdigest()
+
+    return str(vs_crip_arm.decode('utf-8')) == vs_crip_forn and auth ==1
+
+#-----------------------------------------CADASTRO DE USUÁRIO-----------------------------------------#
 # Cadastro de usuário
 def cadastrar_user():
-
     conn = sqlite3.connect("projectdbt.db")
     cursor = conn.cursor()
     # Verifica se o CPF tem apenas números
-    def  verificar_cpf(vcpf):
-        if vcpf.isdigit() and len(vcpf) == 11:
-            return True
-        else:
-            return False
-        
-    # Verifica se o email é válido
-    def verificar_email(vemail):
-        try:
-            #V alida o email usando a função validate_email
-            valid = validate_email(vemail)
-            return True
-        except EmailNotValidError as e:
-            # Captura a exceção EmailNotValidError caso o email não seja válido
-            print(str(e))
-            return False
-
-    # Verificar se o nome contém apenas letras
-    def verificar_nome(vnome):
-        if all((c.isalpha() or c.isspace()) for c in vnome) and  len(vnome) > 0:
-            return True
-        else:
-            return False
-
-    # Verificar senha e criptografa
-    def verificar_senha(vsenha):
-        # Verifica se a senha contém pelo menos 1 caracter de cada
-        letter = any(c.isalpha() for c in vsenha)
-        number = any(c.isdigit() for c in vsenha)
-        spchar = any(c in "!@#$%&*?" for c in vsenha)
-        lenght = len(vsenha) <= 18
-        
-        return letter and number and spchar and lenght
-
-    def cript_pass(vsenha):
-
-        if verificar_senha(vsenha):
-            hasher = hashlib.sha256()
-            hasher.update(vsenha.encode('utf-8'))
-            senha_hash = hasher.digest()
-            vsenhacrip = binascii.hexlify(senha_hash)
-            return vsenhacrip
-            
     #input do CPF 
     while True:
         vcpf = input("Digite o CPF: ")
@@ -176,143 +124,11 @@ def cadastrar_user():
 
         conn.close()
 
-#-----------------------------------FUNÇÕES DO USUÁRIO COMUM--------------------------------------#
-# Alterar usuário
-def alterar_user():
-    conn = sqlite3.connect("projectdbt.db")
-    cursor = conn.cursor()
-
-    # encripta a nova senha
-    def criptar_novasenha(altersenha):
-        #verifica se a senha contém pelo menos 1 caracter de cada
-        letter = any(c.isalpha() for c in altersenha)
-        number = any(c.isdigit() for c in altersenha)
-        spchar = any(c in "!@#$%&*?" for c in altersenha)
-        lenght = len(altersenha) <= 18
-        
-        return letter and number and spchar and lenght
-
-    def cript_pass(altersenha):
-
-        if criptar_novasenha(altersenha):
-            hasher1 = hashlib.sha256()
-            hasher1.update(altersenha.encode('utf-8'))
-            senha_hash = hasher1.digest()
-            vsenhacrip = binascii.hexlify(senha_hash)
-            return vsenhacrip
-
-    def verificar_email(alteremail):
-        try:
-            # Valida o email usando a função validate_email
-            valid = validate_email(alteremail)
-            return True
-        except EmailNotValidError as e:
-            # Captura a exceção EmailNotValidError caso o email não seja válido
-            print(str(e))
-            return False
-
-    def verificar_nome(alternome):
-        if all((c.isalpha() or c.isspace()) for c in alternome) and  len(alternome) > 0:
-            return True
-        else:
-            return False
-        
-    vcpf = cpf_save()
-
-    cursor.execute("SELECT count(*), EMAIL, NOME, AUTORIZAÇÃO FROM user WHERE CPF = ?", (vcpf,))
-    rs = cursor.fetchone()
-
-    if rs[0] > 0:
-        print ("Usuário localizado")
-        print ("Email: ", rs[1])
-        print ("Nome: ", rs[2])
-        vconfirma = input("Quer alterar este usuário? (S/N)")
-
-        if vconfirma.upper() == "S":
-
-            while True:
-                print("O que deseja alterar? (EMAIL(E), NOME(N), SENHA(S), SAIR(X))")
-                campo = input("Campo: ")
-
-                if campo.upper() == "X": # Seleção de alteração para sair
-                    break
-                
-                elif verificar_email(altermail) and campo.upper() == "E": # Seleção de alteração para email
-                    altermail = input("Novo email: ")
-                    cursor.execute("UPDATE user SET EMAIL = ? WHERE CPF = ?", (altermail, vcpf))
-                
-                elif verificar_nome(alternome) and campo.upper() == "N": # Seleção de alteração para nome
-                    alternome = input("Novo nome: ")
-                    cursor.execute("UPDATE user SET NOME =? WHERE CPF =?", (alternome, vcpf))
-
-                elif campo.upper() == "S": # Seleção de alteração para senha
-                    print("LEMBRE-SE! A senha deve conter ao menos um caracter especial, um número e letras!")
-                    altersenha = getpass.getpass("Nova senha: ")
-                    vsenhacrip = cript_pass(altersenha)
-                        
-                    cursor.execute("UPDATE user SET SENHA =? WHERE CPF =?", (vsenhacrip, vcpf))
-                    conn.commit()
-                
-                conn.close()
-                print("DADOS ALTERADOS COM SUCESSO!")
-# Excluir usuário
-def excluir_user():
-
-    conn = sqlite3.connect("projectdbt.db")
-    cursor = conn.cursor()
-
-    def confirmar(vcpf, vsenha):
-
-        cursor.execute("SELECT SENHA FROM user WHERE CPF = ?", (vcpf,))
-        rs = cursor.fetchone()
-
-        if rs is None:
-            return False
-        #cirptografia armazenada no cadastro     
-        vs_crip_arm = rs[0]
-
-        #criptografia atual
-        hasher = hashlib.sha256()
-        hasher.update(vsenha.encode('utf-8'))
-        vs_crip_forn = hasher.hexdigest()
-        
-        if str(vs_crip_arm.decode('utf-8')) == vs_crip_forn:
-            return True
-        else: 
-            return False
-        
-    vcpf = cpf_save()
-    cursor.execute("SELECT count(*), EMAIL, NOME, AUTORIZAÇÃO FROM user WHERE CPF = ?", (vcpf,))
-    rs = cursor.fetchone()
-
-    if rs[0] > 0:
-        print ("Usuário localizado")
-        print ("Email: ", rs[1])
-        print ("Nome: ", rs[2])
-        vconfirma = input("Confirma a exclusão deste usuário? (S/N)")
-
-        if vconfirma.upper() == "S":
-            print("QUAL A SENHA DO USUÁRIO QUE DESEJA EXCLUIR?")
-
-            vsenha = getpass.getpass("Senha: ")
-
-            if confirmar(vcpf, vsenha):
-            # Enviar instrução SQL para ser executada
-                conn.execute("DELETE FROM user WHERE CPF = " + vcpf)
-                conn.commit()
-                print("USUÁRIO EXCLUÍDO COM SUCESSO!")
-    
-        else:
-            print("VOCÊ NÃO PODE EXCLUIR ESTE USUÀRIO!")
-        
-        conn.close()
-# Área de ompras 
+#-------------------------------------FUNÇÕES DO USUÁRIO COMUM----------------------------------------#
 def shopcart():# função carrinho de compras
-
-    cart = []
-
     conn = sqlite3.connect("projectdbt.db")
     cursor = conn.cursor()
+    cart = []
 
     while True:# menu do carrinho
         print("CARRINHO")
@@ -362,7 +178,6 @@ def shopcart():# função carrinho de compras
         
         elif vescolha == 0: # Sair
             print("Obrigado por comprar, volte sempre!")
-            menu_user()
         else:
             print("Opção inválida")
     cart.clear()
@@ -373,46 +188,10 @@ def shopcart():# função carrinho de compras
 #--------------------------------FUNÇÕES DO USUÁRIO ADMINISTRADOR---------------------------------#
 # Cadastrar 
 def cadastrar_produto():
-     # Conexão com SGDB
-     conn = sqlite3.connect("projectdbt.db")
-     cursor = conn.cursor()
-     # Gerar ID automaticamente
-     def gerador_de_id():
-
-          counter = 1
-          generated_ids = set()
-          
-          formatted_ID = f"{counter:04d}"
-          counter += 1
-
-          while formatted_ID in generated_ids:
-               formatted_ID = f"{counter:04d}"
-               counter += 1
-
-               generated_ids.add(formatted_ID)
-               return int(formatted_ID)
-     # verifica se o categoria contém apenas letras
-     def verificar_produto(vprod):
-          if all((c.isalpha() or c.isspace()) for c in vprod) and  len(vprod) > 0:
-               return vprod
-          else:
-               return False
-     # verificar se o sabor contém apenas letras
-     def verificar_sabor(vsabor):
-          if all((c.isalpha() or c.isspace()) for c in vsabor) and  len(vsabor) > 0:
-               return vsabor
-          else:
-               return None
-          
-     def verificar_preco(vpreco):
-     # verifica se a senha contém pelo menos 1 caracter de cada
-          try:
-               preco = float(vpreco)
-               return preco
-          except ValueError:
-               return None
+    conn = sqlite3.connect("projectdbt.db")
+    cursor = conn.cursor()
     # Verifica se as condições esão corretas
-     while True:
+    while True:
           print("CADASTRAR PRODUTO!")
           vID = gerador_de_id()
      #input produto
@@ -453,26 +232,21 @@ def cadastrar_produto():
 
           cursor.execute("INSERT INTO products VALUES (?, ?, ?, ?, ?)", (vID, vprod, vsabor, vpreco, vqtd))
           conn.commit()
+          
 
           vcontinuar = input(" X FINALIZA o processo OU TECLA ENTER para CONTINUAR: ")
           if vcontinuar.upper() != '':
                break
-     
-     ## fechar conexão
-     conn.close()
-     quit()
-# Alterar 
+          else:
+              print("Saindo...")
 def alterar():
+    conn = sqlite3.connect("projectdbt.db")
+    cursor = conn.cursor()
 
-    select = input("SELECIONE PRODUTOS ou USUÁRIOS:").upper()
-
+    select = input("SELECIONE PRODUTOS, USUÁRIOS ou SAIR:").upper()
+    
     # Seleção efetivada
     if select == "PRODUTOS":
- 
-            # conexão com banco de dados
-            conn = sqlite3.connect("projectdbt.db")
-            cursor = conn.cursor()
-            
             # trazer inforações do banco de dados
             cursor.execute("SELECT * FROM products")
             products = cursor.fetchall()
@@ -522,54 +296,15 @@ def alterar():
                     # Enviar instrução SQL para ser executada
                         conn.commit()
                         print("DADOS ALTERADOS COM SUCESSO!")
-                        conn.close()
 
     elif select == "USUÁRIOS":
-        
-            conn = sqlite3.connect("projectdbt.db")
-            cursor = conn.cursor()
-            
+ 
             # lista dos usuários cadastrados no sistema
             cursor.execute("SELECT * FROM user")
             rs = cursor.fetchall()
             headers = ["CPF", "EMAIL", "NOME", "SENHA", "AUTHS"]
             print(tabulate(rs, headers = headers, tablefmt="psql"))
             
-            # encripta a nova senha
-            def criptar_novasenha(altersenha):
-                #verifica se a senha contém pelo menos 1 caracter de cada
-                letter = any(c.isalpha() for c in altersenha)
-                number = any(c.isdigit() for c in altersenha)
-                spchar = any(c in "!@#$%&*?" for c in altersenha)
-                lenght = len(altersenha) <= 18
-                
-                return letter and number and spchar and lenght
-
-            def cript_pass(altersenha):
-
-                if criptar_novasenha(altersenha):
-                    hasher1 = hashlib.sha256()
-                    hasher1.update(altersenha.encode('utf-8'))
-                    senha_hash = hasher1.digest()
-                    vsenhacrip = binascii.hexlify(senha_hash)
-                    return vsenhacrip
-
-            def verificar_email(alteremail):
-                try:
-                    # Valida o email usando a função validate_email
-                    valid = validate_email(alteremail)
-                    return True
-                except EmailNotValidError as e:
-                    # Captura a exceção EmailNotValidError caso o email não seja válido
-                    print(str(e))
-                    return False
-
-            def verificar_nome(alternome):
-                if all((c.isalpha() or c.isspace()) for c in alternome) and  len(alternome) > 0:
-                    return True
-                else:
-                    return False
-                
             vcpf = input("CPF: ")
 
             cursor.execute("SELECT count(*), CPF, EMAIL, NOME, AUTORIZAÇÃO FROM user WHERE CPF = ?", (vcpf,))
@@ -590,34 +325,40 @@ def alterar():
                         campo = input("Campo: ")
 
                         if campo.upper() == "X": # Seleção de alteração para sair
+                            conn.close()
                             break
                         
-                        elif verificar_email(altermail) and campo.upper() == "E": # Seleção de alteração para email
+                        elif campo.upper() == "E": # Seleção de alteração para email
                             altermail = input("Novo email: ")
-                            cursor.execute("UPDATE user SET EMAIL = ? WHERE CPF = ?", (altermail, vcpf))
-                        
-                        elif verificar_nome(alternome) and campo.upper() == "N": # Seleção de alteração para nome
+                            if verificar_email(altermail):
+                                cursor.execute("UPDATE user SET EMAIL = ? WHERE CPF = ?", (altermail, vcpf))
+                                conn.commit()
+
+                        elif campo.upper() == "N": # Seleção de alteração para nome
                             alternome = input("Novo nome: ")
-                            cursor.execute("UPDATE user SET NOME =? WHERE CPF =?", (alternome, vcpf))
+                            if verificar_nome(alternome):
+                                cursor.execute("UPDATE user SET NOME =? WHERE CPF =?", (alternome, vcpf))
+                                conn.commit()
 
                         elif campo.upper() == "S": # Seleção de alteração para senha
                             print("LEMBRE-SE! A senha deve conter ao menos um caracter especial, um número e letras!")
                             altersenha = getpass.getpass("Nova senha: ")
                             vsenhacrip = cript_pass(altersenha)
-                                
-                            cursor.execute("UPDATE user SET SENHA =? WHERE CPF =?", (vsenhacrip, vcpf))
+                            if verificar_senha(vsenhacrip):
+                                cursor.execute("UPDATE user SET SENHA =? WHERE CPF =?", (vsenhacrip, vcpf))
 
                     # Enviar instrução SQL para ser executada
                         conn.commit()
                         print("DADOS ALTERADOS COM SUCESSO!")
 
-            #Fechar conexão
-            conn.close()
+    elif select == "SAIR":
+        print("Saindo...")
+        conn.close()
 # Excluir 
 def excluir():
     conn = sqlite3.connect("projectdbt.db")
     cursor = conn.cursor()
-    select = input("SELECIONE PRODUTOS ou USUÁRIOS:").upper()
+    select = input("SELECIONE PRODUTOS, USUÁRIOS ou SAIR:").upper()
 
     if select == "PRODUTOS":
         print("CUIDADO A AÇÃO EXECUTADA É IRREVERSÍVEL")
@@ -701,15 +442,18 @@ def excluir():
 
         if vcontinuar.upper() == "N":
             excluir()
-
+    
+    elif select == "SAIR":
+        print("Saindo...")
+        conn.close()
+    
     else:
         print("POR FAVOR SELECIONE UMA OPÇÃO VÁLIDA. PRODUTOS OU USUÁRIOS")
 # Consultar
 def consultar():
     conn = sqlite3.connect("projectdbt.db")
     cursor = conn.cursor()
-
-    select = input("SELECIONE PRODUTOS ou USUÁRIOS:").upper()
+    select = input("SELECIONE PRODUTOS, USUÁRIOS ou SAIR:").upper()
     
     if select == "PRODUTOS":
         print("CONSULTA DE PRODUTOS")
@@ -718,47 +462,6 @@ def consultar():
         rs = cursor.fetchall()
         headers = ["ID","CATEGORIA", "SABOR", "PRECO", "QUANTIDADE"]
         print(tabulate(rs, headers = headers, tablefmt="psql"))
-
-        def filtrar_id():
-
-            vId = input("ID: ")
-            cursor.execute("SELECT * FROM products WHERE ID =?", (vId,))
-            rs = cursor.fetchall()
-            headers = ["ID","CATEGORIA", "SABOR", "PRECO", "QUANTIDADE"]
-            print(tabulate(rs, headers = headers, tablefmt="psql"))
-            
-
-        def filtrar_categoria():
-
-            vcat = input("CATEGORIA: ")
-            cursor.execute("SELECT * FROM products WHERE PRODUTO =?", (vcat,))
-            rs = cursor.fetchall()
-            headers = ["ID","CATEGORIA", "SABOR", "PRECO", "QUANTIDADE"]
-            print(tabulate(rs, headers = headers, tablefmt="psql"))
-        
-        def filtrar_sabor():
-
-            vsab = input("SABOR: ")
-            cursor.execute("SELECT * FROM products WHERE SABOR =?", (vsab,))
-            rs = cursor.fetchall()
-            headers = ["ID","CATEGORIA", "SABOR", "PRECO", "QUANTIDADE"]
-            print(tabulate(rs, headers = headers, tablefmt="psql"))
-        
-        def filtrar_preco():
-
-            vpreco = input("PRECO: ")
-            cursor.execute("SELECT * FROM products WHERE PRECO =?", (vpreco,))
-            rs = cursor.fetchall()
-            headers = ["ID","CATEGORIA", "SABOR", "PRECO", "QUANTIDADE"]
-            print(tabulate(rs, headers = headers, tablefmt="psql"))
-        
-        def filtrar_quantidade():
-
-            vquantidade = input("QUANTIDADE: ")
-            cursor.execute("SELECT * FROM products WHERE QUANTIDADE =?", (vquantidade,))
-            rs = cursor.fetchall()
-            headers = ["ID","CATEGORIA", "SABOR", "PRECO", "QUANTIDADE"]
-            print(tabulate(rs, headers = headers, tablefmt="psql"))
 
         print("ESCOLHA UM FILTRO PARA CONSULTAR")
         print("1 - ID")
@@ -787,8 +490,6 @@ def consultar():
         else:
             quit()
         
-        conn.close()
-
     elif select ==  "USUÁRIOS":
         print("CONSULTA DE USUÁRIOS")
 
@@ -796,39 +497,6 @@ def consultar():
         rs = cursor.fetchall()
         headers = ["CPF", "EMAIL", "NOME", "SENHA", "AUTHS"]
         print(tabulate(rs, headers = headers, tablefmt="psql"))
-
-        def filtrar_cpf():
-
-            vcpf = input("CPF: ")
-            cursor.execute("SELECT * FROM user WHERE CPF =?", (vcpf,))
-            rs = cursor.fetchall()
-            headers = ["CPF", "EMAIL", "NOME", "SENHA", "AUTHS"]
-            print(tabulate(rs, headers = headers, tablefmt="psql"))
-            
-
-        def filtrar_email():
-
-            vemail = input("EMAIL: ")
-            cursor.execute("SELECT * FROM user WHERE EMAIL =?", (vemail,))
-            rs = cursor.fetchall()
-            headers = ["CPF", "EMAIL", "NOME", "SENHA", "AUTHS"]
-            print(tabulate(rs, headers = headers, tablefmt="psql"))
-        
-        def filtrar_nome():
-
-            vnome = input("NOME: ")
-            cursor.execute("SELECT * FROM user WHERE NOME =?", (vnome,))
-            rs = cursor.fetchall()
-            headers = ["CPF", "EMAIL", "NOME", "SENHA", "AUTHS"]
-            print(tabulate(rs, headers = headers, tablefmt="psql"))
-        
-        def filtrar_auth():
-
-            vauth = input("AUTHS: ")
-            cursor.execute("SELECT * FROM user WHERE AUTORIZAÇÃO =?", (vauth,))
-            rs = cursor.fetchall()
-            headers = ["CPF", "EMAIL", "NOME", "SENHA", "AUTHS"]
-            print(tabulate(rs, headers = headers, tablefmt="psql"))
 
         print("ESCOLHA UM FILTRO PARA CONSULTAR")
         print("1 - CPF")
@@ -852,9 +520,164 @@ def consultar():
         
         else:
             quit()
-        
-
+    
         conn.close()
     
+    elif select == "SAIR":
+        print("Saindo...")
     else:
         print("POR FAVOR SELECIONE UMA OPÇÃO VÁLIDA. PRODUTOS OU USUÁRIOS")
+
+#----------------------------------VERIFICAÇÕES DE DADOS DE USUÁRIO--------------------------------#
+# Verificar CPF
+def  verificar_cpf(vcpf):
+    vcpf = vcpf.replace(".", "")
+    vcpf = vcpf.replace("-", "")
+    if vcpf.isdigit() and len(vcpf) == 11:
+        return True
+    else:
+        return False
+# Verifica se o email é válido
+def verificar_email(vemail):
+    try:
+        # Valida o email usando a função validate_email
+        valid = validate_email(vemail)
+        return True
+    except EmailNotValidError as e:
+        # Captura a exceção EmailNotValidError caso o email não seja válido
+        print(str(e))
+        return False
+# Verificar se o nome contém apenas letras
+def verificar_nome(vnome):
+    if all((c.isalpha() or c.isspace()) for c in vnome) and  len(vnome) > 0:
+        return True
+    else:
+        return False
+# Verificar senha e criptografa
+def verificar_senha(vsenha):
+    # Verifica se a senha contém pelo menos 1 caracter de cada
+    letter = any(c.isalpha() for c in vsenha)
+    number = any(c.isdigit() for c in vsenha)
+    spchar = any(c in "!@#$%&*?" for c in vsenha)
+    lenght = len(vsenha) <= 18
+    
+    return letter and number and spchar and lenght
+# Criptografa a senha para o banco de dados
+def cript_pass(vsenha):
+
+    if verificar_senha(vsenha):
+        hasher = hashlib.sha256()
+        hasher.update(vsenha.encode('utf-8'))
+        senha_hash = hasher.digest()
+        vsenhacrip = binascii.hexlify(senha_hash)
+        return vsenhacrip
+    
+#---------------------------------VERIFICAÇÕES DE DADOS DE PRODUTOS---------------------------------#
+# Gerar ID automaticamente
+def gerador_de_id():
+
+    counter = 1
+    generated_ids = set()
+    
+    formatted_ID = f"{counter:04d}"
+    counter += 1
+
+    while formatted_ID in generated_ids:
+        formatted_ID = f"{counter:04d}"
+        counter += 1
+
+        generated_ids.add(formatted_ID)
+        return int(formatted_ID)
+# Verifica se o categoria contém apenas letras
+def verificar_produto(vprod):
+    if all((c.isalpha() or c.isspace()) for c in vprod) and  len(vprod) > 0:
+        return vprod
+    else:
+        return False
+# Verificar se o sabor contém apenas letras
+def verificar_sabor(vsabor):
+    if all((c.isalpha() or c.isspace()) for c in vsabor) and  len(vsabor) > 0:
+        return vsabor
+    else:
+        return None
+# Verifica se o preço contém apenas letras
+def verificar_preco(vpreco):
+    try:
+        preco = float(vpreco)
+        return preco
+    except ValueError:
+        return None
+    
+#----------------------------------FILTROS PARA CONSULTAR PRODUTOS-----------------------------------#
+def filtrar_id():
+
+    vId = input("ID: ")
+    cursor.execute("SELECT * FROM products WHERE ID =?", (vId,))
+    rs = cursor.fetchall()
+    headers = ["ID","CATEGORIA", "SABOR", "PRECO", "QUANTIDADE"]
+    print(tabulate(rs, headers = headers, tablefmt="psql"))
+    
+def filtrar_categoria():
+
+    vcat = input("CATEGORIA: ")
+    cursor.execute("SELECT * FROM products WHERE PRODUTO =?", (vcat,))
+    rs = cursor.fetchall()
+    headers = ["ID","CATEGORIA", "SABOR", "PRECO", "QUANTIDADE"]
+    print(tabulate(rs, headers = headers, tablefmt="psql"))
+
+def filtrar_sabor():
+
+    vsab = input("SABOR: ")
+    cursor.execute("SELECT * FROM products WHERE SABOR =?", (vsab,))
+    rs = cursor.fetchall()
+    headers = ["ID","CATEGORIA", "SABOR", "PRECO", "QUANTIDADE"]
+    print(tabulate(rs, headers = headers, tablefmt="psql"))
+
+def filtrar_preco():
+
+    vpreco = input("PRECO: ")
+    cursor.execute("SELECT * FROM products WHERE PRECO =?", (vpreco,))
+    rs = cursor.fetchall()
+    headers = ["ID","CATEGORIA", "SABOR", "PRECO", "QUANTIDADE"]
+    print(tabulate(rs, headers = headers, tablefmt="psql"))
+
+def filtrar_quantidade():
+
+    vquantidade = input("QUANTIDADE: ")
+    cursor.execute("SELECT * FROM products WHERE QUANTIDADE =?", (vquantidade,))
+    rs = cursor.fetchall()
+    headers = ["ID","CATEGORIA", "SABOR", "PRECO", "QUANTIDADE"]
+    print(tabulate(rs, headers = headers, tablefmt="psql"))
+
+#----------------------------------FILTROS PARA CONSULTAR USUÁRIOS------------------------------------#
+def filtrar_cpf():
+
+    vcpf = input("CPF: ")
+    cursor.execute("SELECT * FROM user WHERE CPF =?", (vcpf,))
+    rs = cursor.fetchall()
+    headers = ["CPF", "EMAIL", "NOME", "SENHA", "AUTHS"]
+    print(tabulate(rs, headers = headers, tablefmt="psql"))
+    
+def filtrar_email():
+
+    vemail = input("EMAIL: ")
+    cursor.execute("SELECT * FROM user WHERE EMAIL =?", (vemail,))
+    rs = cursor.fetchall()
+    headers = ["CPF", "EMAIL", "NOME", "SENHA", "AUTHS"]
+    print(tabulate(rs, headers = headers, tablefmt="psql"))
+
+def filtrar_nome():
+
+    vnome = input("NOME: ")
+    cursor.execute("SELECT * FROM user WHERE NOME =?", (vnome,))
+    rs = cursor.fetchall()
+    headers = ["CPF", "EMAIL", "NOME", "SENHA", "AUTHS"]
+    print(tabulate(rs, headers = headers, tablefmt="psql"))
+
+def filtrar_auth():
+
+    vauth = input("AUTHS: ")
+    cursor.execute("SELECT * FROM user WHERE AUTORIZAÇÃO =?", (vauth,))
+    rs = cursor.fetchall()
+    headers = ["CPF", "EMAIL", "NOME", "SENHA", "AUTHS"]
+    print(tabulate(rs, headers = headers, tablefmt="psql"))
